@@ -1,37 +1,47 @@
 [
   {
     "id": 1,
-    "name": "Стикерпак автора",
+    "name": "Промокод на скидку 10%",
     "market_price": 50,
     "weight": 60,
-    "stock": 9999
+    "stock": 9999,
+    "type": "text",
+    "content": "PROMO10-2024"
   },
   {
     "id": 2,
-    "name": "Чехол для телефона",
-    "market_price": 800,
-    "weight": 20,
-    "stock": 15
+    "name": "Доступ в VIP канал",
+    "market_price": 500,
+    "weight": 25,
+    "stock": 100,
+    "type": "invite_link",
+    "content": "https://t.me/your_vip_channel"
   },
   {
     "id": 3,
-    "name": "Powerbank 10000 mAh",
-    "market_price": 1500,
+    "name": "Гайд по заработку",
+    "market_price": 1000,
     "weight": 10,
-    "stock": 7
+    "stock": 50,
+    "type": "file",
+    "content": "BAADBAADrwADBREAAUmZS5t3V8d2Ag"
   },
   {
     "id": 4,
-    "name": "Беспроводные наушники",
-    "market_price": 3500,
-    "weight": 5,
-    "stock": 3
+    "name": "Персональная консультация",
+    "market_price": 3000,
+    "weight": 4,
+    "stock": 10,
+    "type": "text",
+    "content": "Напиши @your_username для записи на консультацию"
   },
   {
     "id": 5,
-    "name": "iPhone 15",
-    "market_price": 80000,
+    "name": "iPhone 15 Pro",
+    "market_price": 100000,
     "weight": 1,
-    "stock": 1
+    "stock": 1,
+    "type": "contact_manager",
+    "content": "Наш менеджер свяжется с вами в течение 24 часов"
   }
 ]
