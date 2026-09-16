@@ -81,16 +81,17 @@ def pick_gift():
 # ---------- Команда /start ----------
 @dp.message(CommandStart())
 async def start(message: Message):
-    # ВАЖНО: замени ТВОЙ_ЮЗЕР на свой username на GitHub
-webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
+    webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎰 Открыть барабан", web_app=WebAppInfo(url=webapp_url))]
     ])
+    
     await message.answer(
         "Привет! 👋\n\n"
         "Крути барабан и выигрывай реальные подарки 🎁\n"
         f"Одно вращение — <b>{SPIN_PRICE_STARS} ★</b>\n\n"
+        f"Ссылка на барабан: {webapp_url}\n\n"
         "Нажми кнопку ниже 👇",
         reply_markup=kb,
         parse_mode=ParseMode.HTML,
