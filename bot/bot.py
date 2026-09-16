@@ -70,32 +70,8 @@ def pick_gift():
     save_gifts(gifts)
     return chosen
 
-# ---------- Команда /start ----------
-@dp.message(CommandStart())
-async def start(message: Message):
-    # Правильная ссылка на твоё приложение
-    webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
-    
-    # Создаём кнопку
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎰 Открыть барабан", web_app=WebAppInfo(url=webapp_url))]
-    ])
-    
-    # Отправляем сообщение с отладочной информацией
-    await message.answer(
-        f"🔍 <b>Отладка:</b>\n"
-        f"URL приложения: <code>{webapp_url}</code>\n\n"
-        f"👋 <b>Привет!</b>\n\n"
-        f"Крути барабан и выигрывай реальные подарки 🎁\n"
-        f"Одно вращение — <b>{SPIN_PRICE_STARS} ★</b>\n\n"
-        f"Нажми кнопку ниже, чтобы открыть 👇",
-        reply_markup=kb,
-        parse_mode=ParseMode.HTML,
-    )
-
-# ---------- Команда /spin ----------
-@dp.message(Command("spin"))
-async def spin_command(message: Message):
+# ---------- Команда /spin (ВЫСТАВЛЯЕТ СЧЁТ) ----------
+async def process_spin(message: Message):
     gift = pick_gift()
     if gift is None:
         await message.answer("⚙️ Сервис временно не работает — ведутся технические работы.")
@@ -111,6 +87,29 @@ async def spin_command(message: Message):
         prices=prices,
         provider_token="",
         payload=f"spin_{message.from_user.id}_{gift['id']}",
+    )
+
+# ---------- Команда /start ----------
+@dp.message(CommandStart())
+async def start(message: Message):
+    # 🚀 ГЛАВНОЕ ИСПРАВЛЕНИЕ: если в команде есть слово "spin", сразу выставляем счёт!
+    if message.text and "spin" in message.text.lower():
+        await process_spin(message)
+        return
+    
+    # Обычное приветствие, если просто /start
+    webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🎰 Открыть барабан", web_app=WebAppInfo(url=webapp_url))]
+    ])
+    
+    await message.answer(
+        f"👋 <b>Привет!</b>\n\n"
+        f"Крути барабан и выигрывай реальные подарки 🎁\n"
+        f"Одно вращение — <b>{SPIN_PRICE_STARS} ★</b>\n\n"
+        f"Нажми кнопку ниже, чтобы открыть 👇",
+        reply_markup=kb,
+        parse_mode=ParseMode.HTML,
     )
 
 # ---------- Обработка оплаты ----------
@@ -156,7 +155,6 @@ async def on_success(message: Message):
 # ---------- Команда /stats ----------
 @dp.message(Command("stats"))
 async def stats(message: Message):
-    # Убрал проверку админа для теста
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("SELECT COUNT(*), COALESCE(SUM(stars_paid),0), COALESCE(SUM(gift_market_price),0) FROM spins")
@@ -166,7 +164,7 @@ async def stats(message: Message):
     last = c.fetchall()
     conn.close()
     
-    text = f" <b>Статистика</b>\n\n"
+    text = f"📊 <b>Статистика</b>\n\n"
     text += f"Всего вращений: <b>{total_spins}</b>\n"
     text += f"Получено звёзд: <b>{total_stars} ★</b>\n"
     text += f"Рыночная стоимость призов: <b>{total_market} ₽</b>\n"
