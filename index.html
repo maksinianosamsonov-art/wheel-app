@@ -79,7 +79,6 @@
       #fa709a 180deg 225deg, #fee140 225deg 270deg,
       #30cfd0 270deg 315deg, #a8edea 315deg 360deg
     );
-    transition: transform 4s cubic-bezier(0.17, 0.67, 0.21, 0.99);
     box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
   }
   .wheel::after {
@@ -125,21 +124,6 @@
 
   .price { margin-top: 14px; font-size: 13px; opacity: 0.7; }
   .price b { color: #ffd86b; }
-
-  .result {
-    margin-top: 18px;
-    padding: 14px;
-    border-radius: 16px;
-    font-size: 15px;
-    display: none;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .result.show { display: block; animation: pop 0.4s ease; }
-  @keyframes pop {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
 </style>
 </head>
 <body>
@@ -149,13 +133,11 @@
 
     <div class="wheel-wrap">
       <div class="pointer"></div>
-      <div class="wheel" id="wheel"></div>
+      <div class="wheel"></div>
     </div>
 
     <button class="spin-btn" id="spinBtn">Крутить за 100 ★</button>
-    <div class="price">Средний выигрыш ≈ рыночная стоимость</div>
-
-    <div class="result" id="result"></div>
+    <div class="price">Оплати звёздами → получи подарок</div>
   </div>
 
 <script>
@@ -165,31 +147,27 @@
     tg.expand();
   }
 
-  const wheel = document.getElementById('wheel');
   const btn = document.getElementById('spinBtn');
-  const result = document.getElementById('result');
-
-  let currentRotation = 0;
 
   btn.addEventListener('click', () => {
     btn.disabled = true;
-    result.classList.remove('show');
-
-    const extra = 1440 + Math.random() * 720;
-    currentRotation += extra;
-    wheel.style.transform = `rotate(${currentRotation}deg)`;
-
+    btn.textContent = 'Переход к оплате...';
+    
+    // Сразу перекидываем в бота для оплаты
+    const botUsername = "my_wheel888_bot";
+    const url = `https://t.me/${botUsername}?start=spin`;
+    
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(url);
+    } else {
+      window.location.href = url;
+    }
+    
+    // Возвращаем кнопку через 2 секунды
     setTimeout(() => {
-      // Замени USERNAME_TVOEGO_BOTA на username своего бота (без @)
-      const botUsername = "my_wheel888_bot";
-      const url = `https://t.me/${botUsername}?start=spin`;
-      if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(url);
-      } else {
-        window.location.href = url;
-      }
       btn.disabled = false;
-    }, 4000);
+      btn.textContent = 'Крутить за 100 ★';
+    }, 2000);
   });
 </script>
 </body>
