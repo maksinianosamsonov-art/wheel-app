@@ -87,7 +87,6 @@ async def start(message: Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎰 Открыть барабан", web_app=WebAppInfo(url=webapp_url))]
     ])
-    
     await message.answer(
         "Привет! 👋\n\n"
         "Крути барабан и выигрывай реальные подарки 🎁\n"
