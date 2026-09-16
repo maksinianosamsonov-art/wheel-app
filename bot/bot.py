@@ -163,7 +163,7 @@ async def on_success(message: Message):
 
 # ---------- Команда /stats (только для тебя) ----------
 # Замени 123456789 на свой Telegram ID (узнай у @userinfobot)
-ADMIN_ID = 123456789
+ADMIN_ID = 334485676
 
 @dp.message(Command("stats"))
 async def stats(message: Message):
