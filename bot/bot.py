@@ -167,9 +167,9 @@ ADMIN_ID = 334485676
 
 @dp.message(Command("stats"))
 async def stats(message: Message):
-    # if message.from_user.id != ADMIN_ID:
-    #     await message.answer("Эта команда только для админа.")
-    #     return
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Эта команда только для админа.")
+        return
     
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
