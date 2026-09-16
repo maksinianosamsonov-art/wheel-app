@@ -82,7 +82,7 @@ async def process_spin(message: Message):
     await bot.send_invoice(
         chat_id=message.chat.id,
         title="🎰 Вращение барабана",
-        description=f"Вы можете выиграть: {gift['name']} (рыночная цена ~{gift['market_price']}₽)",
+       description=f"Вы можете выиграть: {gift['name']}",
         currency="XTR",
         prices=prices,
         provider_token="",
