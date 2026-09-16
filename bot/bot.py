@@ -70,11 +70,80 @@ def pick_gift():
     save_gifts(gifts)
     return chosen
 
+# ---------- АВТОВЫДАЧА ПРИЗОВ ----------
+async def deliver_prize(message: Message, gift):
+    """Автоматически отправляет приз пользователю"""
+    prize_type = gift.get("type", "text")
+    content = gift.get("content", "")
+    prize_name = gift["name"]
+    
+    try:
+        if prize_type == "text":
+            # Отправляем текстовый приз (промокод, инструкцию)
+            await message.answer(
+                f"🎁 <b>Ваш приз: {prize_name}</b>\n\n"
+                f"{content}\n\n"
+                f"Сохраните это сообщение!",
+                parse_mode=ParseMode.HTML
+            )
+        
+        elif prize_type == "invite_link":
+            # Отправляем ссылку на канал
+            await message.answer(
+                f"🎁 <b>Ваш приз: {prize_name}</b>\n\n"
+                f"Переходите по ссылке:\n"
+                f"{content}\n\n"
+                f"Добро пожаловать! 🎉",
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True
+            )
+        
+        elif prize_type == "file":
+            # Отправляем файл (по file_id)
+            await message.answer_document(
+                document=content,
+                caption=f"🎁 <b>Ваш приз: {prize_name}</b>\n\nСохраните файл!",
+                parse_mode=ParseMode.HTML
+            )
+        
+        elif prize_type == "photo":
+            # Отправляем фото
+            await message.answer_photo(
+                photo=content,
+                caption=f"🎁 <b>Ваш приз: {prize_name}</b>",
+                parse_mode=ParseMode.HTML
+            )
+        
+        elif prize_type == "contact_manager":
+            # Сообщаем, что менеджер свяжется
+            await message.answer(
+                f"🎉 <b>Поздравляем! Вы выиграли: {prize_name}</b>\n\n"
+                f"{content}\n\n"
+                f"Ожидайте сообщения от нас!",
+                parse_mode=ParseMode.HTML
+            )
+        
+        else:
+            #Fallback для неизвестного типа
+            await message.answer(
+                f"🎉 <b>Поздравляем! Вам выпал: {prize_name}</b>\n\n"
+                f"Мы свяжемся с вами для вручения приза!",
+                parse_mode=ParseMode.HTML
+            )
+    
+    except Exception as e:
+        # Если не получилось отправить автоматически
+        await message.answer(
+            f"🎉 <b>Поздравляем! Вы выиграли: {prize_name}</b>\n\n"
+            f"Напишите в поддержку для получения приза: @your_support_username",
+            parse_mode=ParseMode.HTML
+        )
+
 # ---------- Команда /spin (ВЫСТАВЛЯЕТ СЧЁТ) ----------
 async def process_spin(message: Message):
     gift = pick_gift()
     if gift is None:
-        await message.answer("⚙️ Сервис временно не работает — ведутся технические работы.")
+        await message.answer("️ Сервис временно не работает — ведутся технические работы.")
         return
 
     prices = [LabeledPrice(label="Вращение барабана", amount=SPIN_PRICE_STARS)]
@@ -82,7 +151,7 @@ async def process_spin(message: Message):
     await bot.send_invoice(
         chat_id=message.chat.id,
         title="🎰 Вращение барабана",
-       description=f"Вы можете выиграть: {gift['name']}",
+        description=f"Вы можете выиграть: {gift['name']}",
         currency="XTR",
         prices=prices,
         provider_token="",
@@ -92,19 +161,17 @@ async def process_spin(message: Message):
 # ---------- Команда /start ----------
 @dp.message(CommandStart())
 async def start(message: Message):
-    # 🚀 ГЛАВНОЕ ИСПРАВЛЕНИЕ: если в команде есть слово "spin", сразу выставляем счёт!
     if message.text and "spin" in message.text.lower():
         await process_spin(message)
         return
     
-    # Обычное приветствие, если просто /start
     webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎰 Открыть барабан", web_app=WebAppInfo(url=webapp_url))]
     ])
     
     await message.answer(
-        f"👋 <b>Привет!</b>\n\n"
+        f" <b>Привет!</b>\n\n"
         f"Крути барабан и выигрывай реальные подарки 🎁\n"
         f"Одно вращение — <b>{SPIN_PRICE_STARS} ★</b>\n\n"
         f"Нажми кнопку ниже, чтобы открыть 👇",
@@ -132,7 +199,7 @@ async def on_success(message: Message):
     gifts = load_gifts()
     gift = next((g for g in gifts if g["id"] == gift_id), None)
     if gift is None:
-        await message.answer("⚙️ Сервис временно не работает.")
+        await message.answer("️ Сервис временно не работает.")
         return
 
     record_spin(
@@ -144,17 +211,16 @@ async def on_success(message: Message):
         gift_price=gift["market_price"],
     )
 
-    await message.answer(
-        f"🎉 <b>Поздравляем!</b>\n\n"
-        f"Тебе выпал: <b>{gift['name']}</b>\n"
-        f"Рыночная стоимость: ~{gift['market_price']} ₽\n\n"
-        f"Мы свяжемся с тобой для доставки 📦",
-        parse_mode=ParseMode.HTML,
-    )
+    # 🚀 АВТОМАТИЧЕСКИ ВЫДАЁМ ПРИЗ!
+    await deliver_prize(message, gift)
 
 # ---------- Команда /stats ----------
 @dp.message(Command("stats"))
 async def stats(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Эта команда только для админа.")
+        return
+    
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("SELECT COUNT(*), COALESCE(SUM(stars_paid),0), COALESCE(SUM(gift_market_price),0) FROM spins")
@@ -174,7 +240,7 @@ async def stats(message: Message):
 # ---------- Запуск бота ----------
 async def main():
     init_db()
-    print("✅ БОТ ЗАПУЩЕН! Telegram Stars готов к работе.")
+    print("✅ БОТ ЗАПУЩЕН! Автоматическая выдача призов активна.")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
