@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Барабан подарков</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    color: #fff;
+    overflow: hidden;
+  }
+  body {
+    background:
+      radial-gradient(circle at 20% 10%, #ff6ec7 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, #7873f5 0%, transparent 45%),
+      radial-gradient(circle at 50% 90%, #4facfe 0%, transparent 50%),
+      linear-gradient(135deg, #1a1a2e, #16213e);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    padding-top: calc(env(safe-area-inset-top) + 24px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 28px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .card {
+    width: 100%;
+    max-width: 380px;
+    padding: 28px 22px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+    background: linear-gradient(180deg, #fff, #cfd4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { font-size: 14px; opacity: 0.75; margin-bottom: 24px; }
+
+  .wheel-wrap {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.25);
+    box-shadow:
+      0 12px 40px rgba(0,0,0,0.4),
+      inset 0 2px 8px rgba(255,255,255,0.15);
+    overflow: hidden;
+  }
+  .wheel {
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    background: conic-gradient(
+      #ff6ec7 0 45deg, #7873f5 45deg 90deg,
+      #4facfe 90deg 135deg, #43e97b 135deg 180deg,
+      #fa709a 180deg 225deg, #fee140 225deg 270deg,
+      #30cfd0 270deg 315deg, #a8edea 315deg 360deg
+    );
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.21, 0.99);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+  }
+  .wheel::after {
+    content: "";
+    position: absolute;
+    inset: 40%;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .pointer {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 24px solid #fff;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    z-index: 2;
+  }
+
+  .spin-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 18px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff6ec7, #7873f5);
+    box-shadow:
+      0 8px 24px rgba(120, 115, 245, 0.45),
+      inset 0 1px 0 rgba(255,255,255,0.3);
+    transition: transform 0.15s ease;
+  }
+  .spin-btn:active { transform: scale(0.97); }
+  .spin-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .price { margin-top: 14px; font-size: 13px; opacity: 0.7; }
+  .price b { color: #ffd86b; }
+
+  .result {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 16px;
+    font-size: 15px;
+    display: none;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .result.show { display: block; animation: pop 0.4s ease; }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+  <div class="card glass">
+    <h1>🎁 Барабан подарков</h1>
+    <div class="subtitle">Крути и выигрывай реальные призы</div>
+
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <div class="wheel" id="wheel"></div>
+    </div>
+
+    <button class="spin-btn" id="spinBtn">Крутить за 100 ★</button>
+    <div class="price">Средний выигрыш ≈ рыночная стоимость</div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  const wheel = document.getElementById('wheel');
+  const btn = document.getElementById('spinBtn');
+  const result = document.getElementById('result');
+
+  let currentRotation = 0;
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    result.classList.remove('show');
+
+    const extra = 1440 + Math.random() * 720;
+    currentRotation += extra;
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+    setTimeout(() => {
+      // Замени USERNAME_TVOEGO_BOTA на username своего бота (без @)
+      const botUsername = "my_wheel888_bot";
+      const url = `https://t.me/${botUsername}?start=spin`;
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(url);
+      } else {
+        window.location.href = url;
+      }
+      btn.disabled = false;
+    }, 4000);
+  });
+</script>
+</body>
+</html>
