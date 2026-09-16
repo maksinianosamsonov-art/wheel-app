@@ -82,7 +82,7 @@ def pick_gift():
 @dp.message(CommandStart())
 async def start(message: Message):
     # ВАЖНО: замени ТВОЙ_ЮЗЕР на свой username на GitHub
-       webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
+webapp_url = "https://maksinianosamsonov-art.github.io/wheel-app/"
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎰 Открыть барабан", web_app=WebAppInfo(url=webapp_url))]
